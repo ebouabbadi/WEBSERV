@@ -1,91 +1,98 @@
-#include <netdb.h>
-#include <string>
+#include <iostream>
 #include <vector>
-#include <stack>
-#include <map>
-#include <string>
-#include <fcntl.h>
-#include <iostream>
-#include <iostream>
-#include <sys/wait.h>
 
-std::vector<std::string> split_string(std::string str, char c)
+std::vector<std::string> split(std::string str, char delimiter)
 {
-    std::vector<std::string> vect;
-    std::string mot;
-    int start;
-    int i;
+    std::vector<std::string> tokens;
+    std::string token;
 
-    i = 0;
-
-    while (i < str.size())
+    for (int i = 0; i < str.length(); i++)
     {
-        while (str[i] && str[i] == c)
-            i++;
-        start = i;
-        while (str[i] && str[i] != c)
-            i++;
-        mot = str.substr(start, i - start);
-        if (!mot.empty())
-            vect.push_back(mot);
+        if (str[i] == delimiter)
+        {
+            tokens.push_back(token);
+            token.clear();
+        }
+        else
+            token += str[i];
+    }
+    tokens.push_back(token);
+    return tokens;
+}
+
+int main()
+{
+    std::string rqpost =
+        "POST / HTTP/1.1\n"
+        "User-Agent: PostmanRuntime/7.31.3\n"
+        "Accept: */*\n"
+        "Postman-Token: 77f3dc34-770d-401f-b406-c774c7202228\n"
+        "Host: localhost:7000\n"
+        "Accept-Encoding: gzip, deflate, br\n"
+        "Connection: keep-alive\n"
+        "Content-Type: multipart/form-data; boundary=--------------------------700303798331205453821588\n"
+        "Cookie: Cookie_1=value; Cookie_2=value; Cookie_3=value; Cookie_4=value\n"
+        "Content-Length: 375\n"
+        "\n"
+        "----------------------------700303798331205453821588\n"
+        "Content-Disposition: form-data; name='file'; filename='texte.txt'\n"
+        "Content-Type: text/plain\n"
+        "\n"
+        "HI i'am  Mehdi\n"
+        "23 y  i have experience\n"
+        "ok save\n"
+        "----------------------------700303798331205453821588\n"
+        "Content-Disposition: form-data; name='text'\n"
+        "\n"
+        "how are you\n"
+        "im fine\n"
+        "----------------------------700303798331205453821588--\n";
+    std::string nb;
+    int index = rqpost.find("boundary=");
+    if (index == -1)
+        return (0);
+    else
+    {
+        index += 9;
+        while (rqpost[index] == '-')
+            index++;
+        for (; rqpost[index] != '\n'; index++)
+            nb.push_back(rqpost[index]);
+    }
+    int i = 0;
+    // std::cout << nb;
+    std::vector<std::string> my_body;
+    while (rqpost[i])
+    {
+        if (rqpost.compare(0, nb.length(), nb))
+            std::cout<<"X\n";
         i++;
     }
-    return vect;
-}
+    
+    // std::vector<std::string> ft_fa = split(pos, '\n');
+    // std::string search = ft_fa[0];
+    // int i = 1;
+    // // while (ft_fa[i] != search)
+    // //     i++;
+    // for (const auto &str : ft_fa)
+    // {
+    //     if (str == search)
+    //         std::cout<<"X\n";
+    //     std::cout << str<<std::endl;
+    // }
 
-std::string parsing_url(std::string url)
-{
-    std::string new_url;
-    std::vector<std::string> vect_str = split_string(url, '/');
-    if (vect_str.empty())
-        return "/";
-    for (int i = 0; i < vect_str.size(); i++)
-    {
-        if (i == 0)
-            new_url += "/";
-        new_url += vect_str[i];
-        if (!(i == vect_str.size() - 1))
-            new_url += "/";
-    }
-    return new_url;
-}
-int main(int ac, char **av)
-{
-    std::map<std::string, std::string> conf;
-    conf.insert(std::make_pair("/", "data1"));
-    conf.insert(std::make_pair("/home", "date2"));
-    conf.insert(std::make_pair("/home/code/test", "date3"));
-    std::string url = (std::string)av[1];
-
-    url = parsing_url(url);
-    std::vector<std::string> vect_str = split_string(url, '/');
-    std::string url_check;
-    int len = vect_str.size();
-
-    while (1)
-    {
-        url_check = "/";
-        int i = 0;
-        while (i < len)
-        {
-            url_check += vect_str[i];
-            if (i != len - 1)
-                url_check += "/";
-            i++;
-        }
-        len--;
-        std::map<std::string, std::string>::iterator it = conf.begin();
-        while (it != conf.end())
-        {
-            if (!it->first.compare(url_check))
-            {
-                std::cout << it->second << std::endl;
-                return 1;
-            }
-            it++;
-        }
-        if (!url_check.compare("/"))
-            break;
-    }
-    return 1;
+    //     while (search != ft_fa[i])
+    //     {
+    //         std::cout<<"size = "<<ft_fa[i]<<std::endl;
+    //         std::string my_body;
+    //         for (size_t j = 0; j < ft_fa[i].size(); j++)
+    //         {
+    //             my_body.push_back(ft_fa[i][j]);
+    //         }
+    //         std::cout<<my_body<<std::endl;
+    //         i++;
+    //     }
+    //     i++;
+    // }
+    return (0);
 }

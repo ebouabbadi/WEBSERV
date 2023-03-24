@@ -141,7 +141,7 @@ std::string int_to_string(int numb)
 
 std::string myCookies(std::string url)
 {
-        std::string SetCookies = "Set-Cookie: ";
+    std::string SetCookies = "Set-Cookie: ";
     if (!url.empty())
     {
         std::cout << "1--------------------+-----------------\n";
@@ -165,7 +165,7 @@ std::string myCookies(std::string url)
         SetCookies.append(name);
         SetCookies.append("=");
         SetCookies.append(value);
-        std::cout << SetCookies<< std::endl;
+        std::cout << SetCookies << std::endl;
         std::cout << "2--------------------+-----------------\n";
     }
     return SetCookies;
