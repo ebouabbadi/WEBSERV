@@ -1,24 +1,27 @@
 #include <iostream>
 #include <vector>
+#include <map>
+#include <deque>
+#include <fstream>
 
-std::vector<std::string> split(std::string str, char delimiter)
-{
-    std::vector<std::string> tokens;
-    std::string token;
+// std::vector<std::string> split(std::string str, char delimiter)
+// {
+//     std::vector<std::string> tokens;
+//     std::string token;
 
-    for (int i = 0; i < str.length(); i++)
-    {
-        if (str[i] == delimiter)
-        {
-            tokens.push_back(token);
-            token.clear();
-        }
-        else
-            token += str[i];
-    }
-    tokens.push_back(token);
-    return tokens;
-}
+//     for (int i = 0; i < str.length(); i++)
+//     {
+//         if (str[i] == delimiter)
+//         {
+//             tokens.push_back(token);
+//             token.clear();
+//         }
+//         else
+//             token += str[i];
+//     }
+//     tokens.push_back(token);
+//     return tokens;
+// }
 
 int main()
 {
@@ -46,30 +49,93 @@ int main()
         "\n"
         "how are you\n"
         "im fine\n"
+        "----------------------------700303798331205453821588\n"
+        "Content-Disposition: form-data; name='text'\n"
+        "\n"
+        "how2 are you\n"
+        "im fine\n"
+        "----------------------------700303798331205453821588\n"
+        "Content-Disposition: form-data; name='text'\n"
+        "\n"
+        "how3 are you\n"
+        "im fine\n"
+        "----------------------------700303798331205453821588\n"
+        "Content-Disposition: form-data; name='text'\n"
+        "\n"
+        "how4 are you\n"
+        "im fine\n"
         "----------------------------700303798331205453821588--\n";
     std::string nb;
     std::string body;
+    std::string file1;
+    std::string file2;
+    std::string file3;
+    std::string file4;
     int index = rqpost.find("boundary=");
     if (index == -1)
         return (0);
     else
     {
         index += 9;
-        while (rqpost[index] == '-')
-            index++;
         for (; rqpost[index] != '\n'; index++)
             nb.push_back(rqpost[index]);
     }
     int index2 = rqpost.find(nb, index + nb.length());
-    for (; index2 < rqpost.length(); index2++)
-        body.push_back(rqpost[index2]);
-    
-    // int index3 = rqpost.find(nb, index2 + nb.length());
-    // for (; index3 < rqpost.length(); index3++)
-    // {
-    //     std::cout<<rqpost[index3];
-    // }
-    std::cout << "==============================================================\n";
+    if (index2 == -1)
+        return (0);
+    else
+    {
+        for (; index2 < rqpost.length(); index2++)
+            body.push_back(rqpost[index2]);
+    }
+    std::deque<std::string> files;
+    int i = 0;
+    int j = 0;
+    int len;
+    while ((body[len + nb.length() - 2] != '-' && body[len + nb.length() - 3] != '-'))
+    {
+        len = body.find(nb, i + nb.length());
+        if (len == -1)
+            break;
+        else
+        {
+            i+= nb.length();
+            for (; i < len - 2; i++)
+            {
+                files[j].push_back(body[i]);
+            }
+            j++;
+        }
+        i = len;
+        // if (body[len + nb.length() - 2] == '-' && body[len + nb.length() - 3] == '-')
+        //     break;
+    }
+    std::cout << files[0];
+    std::cout << "===============================\n";
+    std::cout << files[1];
+    std::cout << "===============================\n";
+    std::cout << files[2];
+    std::cout << "===============================\n";
+    std::cout << files[3];
+    std::cout << "===============================\n";
+    std::cout << files[4];
+    std::cout << "===============================\n";
+    std::cout << files[5];
 
-    return (0);
+    std::ofstream outfile("example.txt");
+
+    // Write some text to the file
+    outfile << files[0] << std::endl;
+
+    // Close the file
+    outfile.close();
+    // int index3 = body.find(nb, nb.length());
+    // for (; index3 < body.size(); index3++)
+    // {
+    //     std::cout<<body[index3];
+    // }
+    if (body[body.size() - 2] == '-' && body[body.size() - 3] == '-')
+        // std::cout << "suiiiiiiiiiiiiiiiiiiiiiiiii" << std::endl;
+        // std::cout << body;
+        return (0);
 }
