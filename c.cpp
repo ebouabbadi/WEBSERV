@@ -1,28 +1,21 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <map>
-int main()
-{
-    // std::vector<std::pair<int, int> > vet;
-
-    // vet.push_back(std::make_pair(1, 11));
-    // vet.push_back(std::make_pair(2, 22));
-    // vet.push_back(std::make_pair(3, 33));
-    // vet.push_back(std::make_pair(4, 44));
-    // vet.push_back(std::make_pair(5, 55));
-    // std::cout << vet[1].first;
-    // return 0;
-
-    // std::cout << "size = " << vet.size() << std::endl;
-    // for (int i = 0; i < vet.size(); i++)
-    // {
-    //     // var.insert(std::make_pair(i, i));
-    //     std::cout << vet[i].first << std::endl;
-    // }
-    std::ostringstream ss;
-    ss << 2012;
-    std::cout<<ss.str().append("hello\n");
-    return 0;
-}
+#include <iostream>  
+#include <cstring>  
+using namespace std;  
+  
+int main()  
+{  
+    char str[100]; // declare the size of string      
+    cout << " Enter a string: " <<endl;  
+    cin.getline(str, 100); // use getline() function to read a string from input stream  
+      
+    char *ptr; // declare a ptr pointer  
+    ptr = strtok(str, "hello"); // use strtok() function to separate string using comma (,) delimiter.  
+    cout << " \n Split string using strtok() function: " << endl;  
+    // use while loop to check ptr is not null  
+    while (ptr != NULL)  
+    {  
+        cout << ptr  << endl; // print the string token  
+        ptr = strtok (NULL, " , ");  
+    }  
+    return 0;  
+}  

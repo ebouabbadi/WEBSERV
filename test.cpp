@@ -60,14 +60,26 @@ int main()
             nb.push_back(rqpost[index]);
     }
     int i = 0;
-    // std::cout << nb;
-    std::vector<std::string> my_body;
+            std::cout<<rqpost;
+    std::cout << nb;
+    int i = 0;
     while (rqpost[i])
     {
-        if (rqpost.compare(0, nb.length(), nb))
-            std::cout<<"X\n";
+        int j = rqpost.find(nb, i);
+        if (i == -1)
+            break;
+        else
+        {
+            
+        }
         i++;
     }
+
+    // while (rqpost[i])
+    // {
+    //     if (rqpost.compare(0, nb.length(), nb))
+    //     i++;
+    // }
     
     // std::vector<std::string> ft_fa = split(pos, '\n');
     // std::string search = ft_fa[0];
