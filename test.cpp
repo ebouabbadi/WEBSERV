@@ -48,6 +48,7 @@ int main()
         "im fine\n"
         "----------------------------700303798331205453821588--\n";
     std::string nb;
+    std::string body;
     int index = rqpost.find("boundary=");
     if (index == -1)
         return (0);
@@ -59,52 +60,16 @@ int main()
         for (; rqpost[index] != '\n'; index++)
             nb.push_back(rqpost[index]);
     }
-    int i = 0;
-            std::cout<<rqpost;
-    std::cout << nb;
-    int i = 0;
-    while (rqpost[i])
-    {
-        int j = rqpost.find(nb, i);
-        if (i == -1)
-            break;
-        else
-        {
-            
-        }
-        i++;
-    }
-
-    // while (rqpost[i])
-    // {
-    //     if (rqpost.compare(0, nb.length(), nb))
-    //     i++;
-    // }
+    int index2 = rqpost.find(nb, index + nb.length());
+    for (; index2 < rqpost.length(); index2++)
+        body.push_back(rqpost[index2]);
     
-    // std::vector<std::string> ft_fa = split(pos, '\n');
-    // std::string search = ft_fa[0];
-    // int i = 1;
-    // // while (ft_fa[i] != search)
-    // //     i++;
-    // for (const auto &str : ft_fa)
+    // int index3 = rqpost.find(nb, index2 + nb.length());
+    // for (; index3 < rqpost.length(); index3++)
     // {
-    //     if (str == search)
-    //         std::cout<<"X\n";
-    //     std::cout << str<<std::endl;
+    //     std::cout<<rqpost[index3];
     // }
+    std::cout << "==============================================================\n";
 
-    //     while (search != ft_fa[i])
-    //     {
-    //         std::cout<<"size = "<<ft_fa[i]<<std::endl;
-    //         std::string my_body;
-    //         for (size_t j = 0; j < ft_fa[i].size(); j++)
-    //         {
-    //             my_body.push_back(ft_fa[i][j]);
-    //         }
-    //         std::cout<<my_body<<std::endl;
-    //         i++;
-    //     }
-    //     i++;
-    // }
     return (0);
 }

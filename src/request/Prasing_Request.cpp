@@ -154,7 +154,9 @@ Prasing_Request::Prasing_Request(std::string hedr)
     body = hedr.substr(hedr.find("\r\n\r\n"));
     if (!check_first_line(first))
         return;
-    prasing_headr(hdr);
+    prasing_headr(hdr);    int i = 0;    int i = 0;    int i = 0;
+
+
 
     if (this->status != 200)
         return;
