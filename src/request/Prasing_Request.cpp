@@ -106,38 +106,7 @@ Prasing_Request::Prasing_Request(std::string hedr)
     if (!hedr.at(0))
         return;
     this->status = 200;
-    /*-----------------------------------------------------------------------------------------------------*/
-    std::string rqpost = 
-        "POST / HTTP/1.1\n"
-        "User-Agent: PostmanRuntime/7.31.3\n"
-        "Accept: */*\n"
-        "Postman-Token: 77f3dc34-770d-401f-b406-c774c7202228\n"
-        "Host: localhost:7000\n"
-        "Accept-Encoding: gzip, deflate, br\n"
-        "Connection: keep-alive\n"
-        "Content-Type: multipart/form-data; boundary=--------------------------700303798331205453821588\n"
-        "Cookie: Cookie_1=value; Cookie_2=value; Cookie_3=value; Cookie_4=value\n"
-        "Content-Length: 375\n"
-        "\n"
-        "----------------------------700303798331205453821588\n"
-        "Content-Disposition: form-data; name='file'; filename='texte.txt'\n"
-        "Content-Type: text/plain\n"
-        "\n"
-        "HI i'am  Mehdi\n"
-        "23 y  i have experience\n"
-        "ok save\n"
-        "----------------------------700303798331205453821588\n"
-        "Content-Disposition: form-data; name='text'\n"
-        "\n"
-        "how are you\n"
-        "im fine\n"
-        "----------------------------700303798331205453821588--\n";
-    /*--------------------------------------------------------------------------------------------------------------*/
 
-        
-    std::cout<<"--------------------------------------------------------------------------\n";
-    std::cout<<rqpost<<std::endl;
-    std::cout<<"--------------------------------------------------------------------------\n";
     std ::string first;
     std ::string hdr;
     std::string body;
@@ -148,15 +117,12 @@ Prasing_Request::Prasing_Request(std::string hedr)
             break;
         i++;
     }
-
     first = hedr.substr(0, i);
     hdr = hedr.substr(0, hedr.find("\r\n\r\n"));
     body = hedr.substr(hedr.find("\r\n\r\n"));
     if (!check_first_line(first))
         return;
-    prasing_headr(hdr);    int i = 0;    int i = 0;    int i = 0;
-
-
+    prasing_headr(hdr);
 
     if (this->status != 200)
         return;
@@ -165,19 +131,19 @@ std ::string Prasing_Request::get_url()
 {
     return this->url;
 }
-std::map<std::string,std::string> Prasing_Request::get_mymap()
+std::map<std::string, std::string> Prasing_Request::get_mymap()
 {
     return (mymap);
 }
 int Prasing_Request::get_status()
 {
-    return(status);
+    return (status);
 }
 std::string Prasing_Request::get_method()
 {
-    return(methode);
+    return (methode);
 }
 std::string Prasing_Request::get_budy_url()
 {
-    return(budy_url);
+    return (budy_url);
 }
