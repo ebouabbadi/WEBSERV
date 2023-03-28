@@ -1,30 +1,6 @@
 #include <iostream>
-#include <vector>
-#include <map>
-#include <deque>
-#include <fstream>
 
-// std::vector<std::string> split(std::string str, char delimiter)
-// {
-//     std::vector<std::string> tokens;
-//     std::string token;
 
-//     for (int i = 0; i < str.length(); i++)
-//     {
-//         if (str[i] == delimiter)
-//         {
-//             tokens.push_back(token);
-//             token.clear();
-//         }
-//         else
-//             token += str[i];
-//     }
-//     tokens.push_back(token);
-//     return tokens;
-// }
-
-int main()
-{
     std::string rqpost =
         "POST / HTTP/1.1\n"
         "User-Agent: PostmanRuntime/7.31.3\n"
@@ -65,15 +41,16 @@ int main()
         "how4 are you\n"
         "im fine\n"
         "----------------------------700303798331205453821588--\n";
+#include <deque>
+
+std::deque  <std::string>   parsingBody(std:: string rqpost)
+{
     std::string nb;
     std::string body;
-    std::string file1;
-    std::string file2;
-    std::string file3;
-    std::string file4;
+
     int index = rqpost.find("boundary=");
     if (index == -1)
-        return (0);
+        exit(0);
     else
     {
         index += 9;
@@ -82,11 +59,11 @@ int main()
     }
     int index2 = rqpost.find(nb, index + nb.length());
     if (index2 == -1)
-        return (0);
+        exit(0);
     else
     {
         for (; index2 < rqpost.length(); index2++)
-            body.push_back(rqpost[index2]);
+            body.push_back(rqpost[index2]);----------------------------755825179202272912921011
     }
     std::deque<std::string> files;
     int i = 0;
@@ -107,35 +84,6 @@ int main()
             j++;
         }
         i = len;
-        // if (body[len + nb.length() - 2] == '-' && body[len + nb.length() - 3] == '-')
-        //     break;
     }
-    std::cout << files[0];
-    std::cout << "===============================\n";
-    std::cout << files[1];
-    std::cout << "===============================\n";
-    std::cout << files[2];
-    std::cout << "===============================\n";
-    std::cout << files[3];
-    std::cout << "===============================\n";
-    std::cout << files[4];
-    std::cout << "===============================\n";
-    std::cout << files[5];
-
-    std::ofstream outfile("example.txt");
-
-    // Write some text to the file
-    outfile << files[0] << std::endl;
-
-    // Close the file
-    outfile.close();
-    // int index3 = body.find(nb, nb.length());
-    // for (; index3 < body.size(); index3++)
-    // {
-    //     std::cout<<body[index3];
-    // }
-    if (body[body.size() - 2] == '-' && body[body.size() - 3] == '-')
-        // std::cout << "suiiiiiiiiiiiiiiiiiiiiiiiii" << std::endl;
-        // std::cout << body;
-        return (0);
+        return (files);
 }

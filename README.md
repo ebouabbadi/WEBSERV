@@ -1,8 +1,48 @@
 # WEBSERV
 ![Screenshot](https://miro.medium.com/v2/resize:fit:720/format:webp/1*AwGI1e13BoLvUd2wThmSLw.jpeg)
+
 HTTP server in C++98
 
-socket : Socket Programming is a method to connect two nodes over a network to establish a means of communication between those two nodes. A node represents a computer or a physical device with an internet connection. A socket is the endpoint used for connecting to a node. The signals required to implement the connection between two nodes are sent and received using the sockets on each node respectively.
+
+    struct sockaddr_in {
+        short int sin_family;          // Address family (AF_INET)
+        unsigned short int sin_port;   // Port number in network byte order
+        struct in_addr sin_addr;       // IP address in network byte order
+        unsigned char sin_zero[8];     // Padding to make struct the same size as sockaddr
+    };
+    
+    The sockaddr_in struct contains the following members:
+
+    sin_family: The address family, which is always AF_INET for IP addresses.
+    sin_port: The port number, stored in network byte order (big-endian).
+    sin_addr: The IP address, stored in network byte order (big-endian) as a struct in_addr.
+    sin_zero: Padding to make the struct the same size as the generic sockaddr struct, which is used as a typecast to sockaddr_in in many socket API calls.
+    You can use the sin_family, sin_port, and sin_addr members to specify the IP address and port number for a socket when calling the bind() function. You can also use them to connect to a remote server with the connect() function, or to retrieve the IP address and port number of a remote client that has connected to your server with the accept() function.
+
+    The pollfd structure contains three fields:
+
+    fd: the file descriptor to monitor
+    events: the events to monitor for the file descriptor, which can include POLLIN for input readiness, POLLOUT for output readiness, POLLERR for error conditions, and POLLHUP for hang-up events.
+    revents: the events that actually occurred for the file descriptor after the poll system call returns. This field is typically initialized to 0 by the caller and is filled in by the poll system call.
+
+
+    # Creating socket file descriptor
+
+    socket : Socket Programming is a method to connect two nodes over a network to establish a means of communication between those two nodes. A node represents a computer or a physical device with an internet connection. A socket is the endpoint used for connecting to a node. The signals required to implement the connection between two nodes are sent and received using the sockets on each node respectively.
+
+    The C++ programming language provides a set of socket functions as part of the standard library that allows a program to create, bind, listen, connect, send, and receive data through a network socket.
+
+    To use sockets in C++, a program typically follows these steps:
+
+    1: Create a socket using the socket() function, which returns a file descriptor that represents the socket.
+    2: Bind the socket to a specific IP address and port number using the bind() function, so that other programs can connect to it.
+    3: Listen for incoming connections using the listen() function.
+    4: Accept incoming connections using the accept() function, which returns a new file descriptor representing the connection.
+    5: Send and receive data using the send() and recv() functions, respectively.
+    In addition to the standard socket functions, C++ provides several classes and libraries for working with sockets, such as the std::net library introduced in C++20, which provides a more 
+    
+    modern and high-level interface for socket programming.
+
 
 # Request Line
 ![Screenshot](https://miro.medium.com/v2/resize:fit:720/format:webp/1*Yqq-60D9mD4NVuhFd4IoFg.png)
