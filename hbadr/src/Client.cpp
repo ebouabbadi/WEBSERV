@@ -3,6 +3,8 @@
 Client::Client()
 {
 }
+
+
 Client::~Client()
 {
     _content_Length = "";
@@ -28,6 +30,7 @@ void Client::setReadyToRecv(int &value)
 {
     _readyToRecv = value;
 }
+
 Client::Client(Configuration &confi)
 {
     _content_Length = "";

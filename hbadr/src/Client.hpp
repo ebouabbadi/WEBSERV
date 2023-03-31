@@ -24,6 +24,7 @@ private:
     int _eof;
     int _sizedata;
 public:
+    Client();
     pollfd plfd;
     int global;
     Prasing_Request &getParsingRequest();
@@ -44,7 +45,6 @@ public:
     
     Client(Configuration &confi);
     ~Client();
-    Client();
 };
 
 #endif
