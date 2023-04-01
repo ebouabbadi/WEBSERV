@@ -1,16 +1,12 @@
 #include "webserv.hpp"
 #include "../src/response/Response.hpp"
 
-/////////////////////////////////////
-//      destructor constructor
-/////////////////////////////////////
 Webserv::Webserv()
 {
 }
 
 Webserv::Webserv(char *path)
 {
-    this->port = 2012;
     std::vector<std::string> config;
     std::string line_s;
     std::string line;
@@ -23,7 +19,7 @@ Webserv::Webserv(char *path)
     }
     while (getline(file, line))
     {
-        if(line.empty())
+        if (line.empty())
             continue;
         line.append("\t");
         std::replace(line.begin(), line.end(), '\t', ' ');
@@ -34,28 +30,29 @@ Webserv::Webserv(char *path)
     line_s = cleaning_input(line_s);
     config = split_string(line_s, ' ');
     std::vector<std::string> cnf;
-    int i =0 ;
+    int i = 0;
     int flag = 0;
     while (i < config.size())
     {
         cnf.push_back(config[i]);
-        if((!config[i].compare("server") && flag == 1))
+        if ((!config[i].compare("server") && flag == 1))
         {
             cnf.pop_back();
             Configuration c(cnf);
-            this->confgs.push_back(c);
+            _confgs.push_back(c);
             flag = 0;
             cnf.clear();
             continue;
         }
-        else if(i == config.size() - 1)
+        else if (i == config.size() - 1)
         {
             Configuration c(cnf);
-            this->confgs.push_back(c);
+
+            _confgs.push_back(c);
             cnf.clear();
             break;
         }
-        if(!config[i].compare("server"))
+        if (!config[i].compare("server"))
             flag = 1;
         i++;
     }
@@ -63,46 +60,26 @@ Webserv::Webserv(char *path)
 }
 Webserv::~Webserv()
 {
+
+}
+std::vector<struct pollfd> &Webserv::get_Pollfd()
+{
+    return _pollfd;
+    ;
+}
+std::vector<Configuration> &Webserv::get_Confgs()
+{
+    return _confgs;
+}
+std::map<int, Configuration> &Webserv::get_Servers()
+{
+    return _servers;
+}
+std::vector<Client *> &Webserv::get_Clients()
+{
+    return _clients;
 }
 
-/////////////////////////////////////
-//      getters and setters
-/////////////////////////////////////
-std::vector<Configuration> Webserv::getConfs()
-{
-    return this->confgs;
-}
-
-int Webserv::getport()
-{
-    return this->port;
-}
-void Webserv::setport(int prt)
-{
-    this->port = prt;
-}
-
-int Webserv::getsockfd()
-{
-    return this->sockfd;
-}
-void Webserv::setsockfd(int sckfd)
-{
-    this->sockfd = sckfd;
-}
-int Webserv::getbacklog()
-{
-    return this->backlog;
-}
-void Webserv::setbacklog(int backlog)
-{
-    this->backlog = backlog;
-}
-
-
-//////////////////////////////////////////
-//      member function
-////////////////////////////////////////
 int ft_exit(std::string a)
 {
     perror(a.c_str());
@@ -113,22 +90,28 @@ int Webserv::init_server()
 {
     int optval = 1;
     int sockfd;
-    int i = 0;
-    while (i < this->confgs.size())
+    int i;
+
+    i = 0;
+    while (i < _confgs.size())
     {
-        std::cout << this->confgs[i].getlisten() << std::endl;
+        std::cout << _confgs[i].getlisten() << std::endl;
         struct sockaddr_in serv_addr;
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        // for solve problem (address already in use)
+        if (sockfd == -1)
+            ft_exit("0");
+        if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
+        {
+            perror("fcntl error");
+            exit(1);
+        }
         if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int))) == -1)
         {
             perror("socket error\n");
             return -1;
         }
-        if (sockfd == -1)
-            ft_exit("0");
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(this->confgs[i].getlisten());
+        serv_addr.sin_port = htons(_confgs[i].getlisten());
         serv_addr.sin_addr.s_addr = INADDR_ANY;
 
         // bind the socket to localhost port 5500
@@ -136,105 +119,143 @@ int Webserv::init_server()
             ft_exit("1");
         if (listen(sockfd, 5) == -1)
             ft_exit("2");
-        this->server.insert(std::make_pair(sockfd, this->confgs[i]));
-        this->max_fd = sockfd;
+        _servers.insert(std::make_pair(sockfd, _confgs[i]));
         i++;
     }
-
     return 0;
 }
-std::string ft_read(std::string name)
-{
-    std::string line_s;
-    std::string line;
 
-    std::ifstream file(name.c_str());
-    if (file.is_open() == 0)
+int Webserv::setup_poollfd()
+{
+    std::map<int, Configuration>::iterator it = _servers.begin();
+
+    while (it != _servers.end())
     {
-        std::cout << "error: configiuration file note founde\n";
-        exit(1);
+        pollfd fd;
+        fd.fd = it->first;
+        fd.events = POLLIN | POLLOUT | POLLHUP;
+        _pollfd.push_back(fd);
+        it++;
     }
-    while (getline(file, line))
+    return 0;
+}
+
+int Webserv::ft_accept(pollfd &tmp_fd)
+{
+    struct sockaddr_in cli_addr;
+    socklen_t cli_addr_len;
+    pollfd accepted;
+
+    cli_addr_len = sizeof(cli_addr);
+    accepted.fd = accept(tmp_fd.fd, (struct sockaddr *)&cli_addr, &cli_addr_len);
+    if (accepted.fd == -1)
     {
-        line.append("\n");
-        line_s += line;
+        std::cout << "I can't handling this connection from port: " << _servers[tmp_fd.fd].getlisten() << std::endl;
+        return -1;
     }
-    return line_s;
+    else
+    {
+        if (fcntl(accepted.fd, F_SETFL, O_NONBLOCK) < 0)
+        {
+            perror("fcntl error");
+            return -1;
+        }
+        accepted.events = POLLIN;
+        Client *client = new Client(_servers[tmp_fd.fd]);
+        client->plfd = accepted;
+        _clients.push_back(client);
+        std::cout << std::endl;
+        _pollfd.push_back(accepted);
+    }
+    return 0;
+}
+
+int Webserv::ft_recv(pollfd &tmp_fd, int j)
+{
+    char buf[BUFFERSIZE];
+    bzero(buf, BUFFERSIZE);
+    int n = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
+    // std::cout<<"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n";
+    // std::cout<<buf;
+    // std::cout<<"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n";
+    if (n == 0)
+    {
+        printf("client %d closed connection\n", tmp_fd.fd);
+        close(tmp_fd.fd);
+        tmp_fd.fd = -1;
+        return 1;
+    }
+    _clients[j]->setReuqst(buf);
+    _clients[j]->find_request_eof();
+    if (_clients[j]->getEof() == true)
+    {
+        tmp_fd.events = POLLOUT;
+        // std::cout << _clients[j]->getReuqst() << std::endl;
+        Prasing_Request prs_reqst(_clients[j]->getReuqst());
+        _clients[j]->setParsingRequest(prs_reqst);
+        Response response(prs_reqst, _clients[j]->getConfiguration());
+        _clients[j]->setResponse(response);
+        _clients[j]->setMessage(_clients[j]->getResponse().get_respons(), 0);
+    }
+    return 0;
+}
+int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
+{
+    std::cout<<_clients[j]->getMessage();
+    int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
+    std::cout<<"???????????????????????????????????????????????????????????????????????\n";
+    std::cout<<_clients[j]->getMessage();
+    std::cout<<"???????????????????????????????????????????????????????????????????????\n";
+    // std::cout<<"----------2\n";
+    _clients[j]->setMessage(_clients[j]->getMessage(), n);
+    if (_clients[j]->getMessage().empty())
+    {
+        close(tmp_fd.fd);
+        _pollfd.erase(_pollfd.begin() + i);
+        _clients.erase(_clients.begin() + j);
+    }
+    return 0;
 }
 
 int Webserv::run_server()
 {
-    // std::string response = ft_read("www/index.html");
-    char buf[2] = "";
-    std::string client_msg;
-    int client_socket;
-
-    FD_ZERO(&this->stes_read);
-    for (std::map<int, Configuration>::iterator it = this->server.begin(); it != this->server.end(); it++)
-        FD_SET(it->first, &this->stes_read);
-
-    // FD_ZERO(&this->stes_write);
-    // FD_SET(this->sockfd, &this->stes_write);
-    // this->max_fd = this->sockfd;
-
-    printf("------------> wait ....\n");
-    while (true)
+    int i; 
+    int return_poll;
+    setup_poollfd();
+    while (Webserv::_true)
     {
-        // std::cout << "=============================\n\n"<< std::endl;
-        fd_set tempfds = this->stes_read;
-        int fd_select = select(this->max_fd + 1, &tempfds, NULL, NULL, NULL);
-        for (std::map<int, Configuration>::iterator it = this->server.begin(); it != this->server.end(); it++)
+        i = 0;
+        return_poll = poll(_pollfd.data(), _pollfd.size(), -1);
+        while(i < _servers.size())
         {
-            if (FD_ISSET(it->first, &tempfds))
+            if ((_pollfd[i].revents & POLLIN) && (_servers.find(_pollfd[i].fd) != _servers.end()))
+                ft_accept(_pollfd[i]);
+            i++;
+        }
+        while (i < _pollfd.size())
+        {
+            if ((_pollfd[i].revents & POLLIN))
             {
-                // if (fd == this->sockfd)
-                // {
-                    client_socket = accept(it->first, NULL, NULL);
-                    // FD_SET(client_socket, &this->stes_read);
-                    // FD_SET(client_socket, &this->stes_write);
-                    // if (client_socket > this->max_fd)
-                    //     this->max_fd = client_socket;
-                // }
-                // else
-                // {
-                    
-                    // it->second.getlocations();
-                    int n;
-                    while(n = recv(client_socket, buf, 2, 0))
-                    {
-                        if(n <= 0)
-                            break;
-                        client_msg.append(buf);
-                    }
-                        std::cout<<"-----------"<<client_msg;
-                    // std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++\n";
-                    // std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
-                    Prasing_Request as(client_msg);        
-                    // std::cout<<client_msg<<"\n";
-                    Response  aj(as,it->second);
-                    std :: string respons= aj.get_respons();
-                    // for (int fd2 = 0; fd2 <= this->max_fd; fd2++)
-                    // {
-                    //     if (FD_ISSET(fd2, &this->stes_write))
-                    //     {
-                            send(client_socket, respons.c_str(), respons.length(), 0);
-                    //         printf("====> %d | %d\n", fd, fd2);
-                    //         close(fd2);
-                    //         FD_CLR(fd2, &this->stes_write);
-                    //     }
-                    // }
-                    close(client_socket);
-                    // FD_CLR(fd, &this->stes_read);
-                // }
+                for (int j = 0; j < _clients.size(); j++)
+                {
+                    if (_clients[j]->plfd.fd == _pollfd[i].fd)
+                        ft_recv(_pollfd[i], j);
+                }
             }
+            if ((_pollfd[i].revents & POLLOUT))
+            {
+                for (int j = 0; j < _clients.size(); j++)
+                {
+                    if (_clients[j]->plfd.fd == _pollfd[i].fd)
+                        ft_send(_pollfd[i], i, j);
+                }
+            }
+            i++; 
         }
     }
     return 0;
 }
 
-
-/////////////////////////////////////////////// configiration //////////////////////////////
 std::string cleaning_input(std::string str)
 {
     std::string dst;
@@ -249,10 +270,9 @@ std::string cleaning_input(std::string str)
         dst += " ";
         dst += str[i];
         dst += " ";
-        if(!str[i])
+        if (!str[i])
             break;
         i++;
     }
     return dst;
 }
-

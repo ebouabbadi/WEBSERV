@@ -139,38 +139,6 @@ std::string int_to_string(int numb)
     return ss.str();
 }
 
-std::string myCookies(std::string url)
-{
-    std::string SetCookies = "Set-Cookie: ";
-    if (!url.empty())
-    {
-        std::cout << "1--------------------+-----------------\n";
-        int i = 0;
-        std::string name;
-        std::string value;
-        int size_fname = url.find("first-name");
-        int size_lname = url.find("last-name");
-        size_fname += 11;
-        size_lname += 10;
-        for (; url[size_fname] != '&'; size_fname++)
-        {
-            name.push_back(url[size_fname]);
-        }
-        for (; url[size_lname] != '\0'; size_lname++)
-        {
-            value.push_back(url[size_lname]);
-        }
-        std::cout << name << std::endl;
-        std::cout << value << std::endl;
-        SetCookies.append(name);
-        SetCookies.append("=");
-        SetCookies.append(value);
-        std::cout << SetCookies << std::endl;
-        std::cout << "2--------------------+-----------------\n";
-    }
-    return SetCookies;
-}
-
 std ::string chec_url(std ::string urll)
 {
     int i = 0;
@@ -257,7 +225,31 @@ std ::string status_delete(int status, std ::string str)
     close(d);
     return (bady);
 }
-
+std ::string mesag_error1(int status)
+{
+    std ::string msg;
+    if (status == 200)
+        msg = " file deleted";
+    if (status == 202)
+        msg = " Accepted";
+    if (status == 204)
+        msg = " No Content";
+    if (status == 400)
+        msg = " Bad Requestd";
+    if (status == 401)
+        msg = " Unauthorized";
+    if (status == 403)
+        msg = " Forbidden";
+    if (status == 404)
+        msg = " Page not found";
+    if (status == 405)
+        msg = " Method Not Allowed";
+    if (status == 409)
+        msg = " Conflict";
+    if (status == 505)
+        msg = " HTTP Version Not Supported";
+    return msg;
+}
 std ::string check_auto(Location &location, Configuration &conf_serv, std ::string root)
 {
     std ::string str;
@@ -269,26 +261,31 @@ std ::string check_auto(Location &location, Configuration &conf_serv, std ::stri
 }
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
+
     // std::cout << "url = " << rq.get_url() << std::endl;
     std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
-    // run_cgi(location_and_url.first.first, location_and_url.first, conf_serv);
-    // std::cout<<rq.get_budy_url()<<std::endl;
+    // std::cout << "-->"<<rq.get_mymap()["Cookie"]<<std::endl;
+
+    // std::cout<<"------>"<<location_and_url.first.getallow_methods()[0]<<std::endl;
+    int fd = 0;
+    try
+    {
+        if (!location_and_url.second.compare("/cgi-bin"))
+        {
+
+            run_cgi(location_and_url.first, rq, conf_serv);
+            return;
+        }
+    }
+    catch (std::string &var)
+    {
+        std::cerr << var << '\n';
+    }
+    // return ;
     status = rq.get_status();
     mymap = rq.get_mymap();
     std ::string url = rq.get_url();
-    std::string setCookies = myCookies(rq.get_budy_url());
     // Location loca(conf_serv, url);
-    // std ::cout << "|" << location_and_url.first.getroot() << "|" << url << "\n";
-    // for (int i = 0; url[i]; i++)
-    // {
-    // int i  = 0;
-    // while (url[i])
-    // {
-    std::cout << url << std::endl;
-    // i++;
-    // }
-
-    // }
     std ::string method = rq.get_method();
     std ::string root;
     std ::string url2;
@@ -306,7 +303,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         autoindex = "on";
     else
         autoindex = "off";
-    close(d);
+    if (d)
+        close(d);
     if (autoindex != "on")
     {
         DIR *dir = opendir(root.c_str());
@@ -315,8 +313,14 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         else if (dir != NULL && !conf_serv.getindex().empty())
             url2 = root + "/" + conf_serv.getindex()[0];
         else
+        {
+            fd = 1;
             url2 = root;
-        closedir(dir);
+            if (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK))
+                fd = 0;
+        }
+        if (dir)
+            closedir(dir);
     }
     if (status == 200)
     {
@@ -361,8 +365,6 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     bady.append(time);
                     bady.append("Content-Type: ");
                     bady.append(Content_type(url2));
-                    bady.append("\n");
-                    bady.append(myCookies(rq.get_budy_url()));
                     bady.append("\nContent-Length: ");
                     int len = http.length();
                     bady.append(int_to_string(len));
@@ -372,48 +374,19 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     close(j);
                     return;
                 }
-                else if (dir != NULL)
-                {
-                    std ::string bady;
-                    std ::string msg;
-                    bady.append("HTTP/1.1 ");
-                    bady.append(int_to_string(status));
-                    bady.append(" OK \nServer: Server \nDate: ");
-                    time_t now = time(0);
-                    char *time = ctime(&now);
-                    bady.append(time);
-                    bady.append("Content-Type: text/html\nContent-Length: ");
-                    msg = "<!DOCTYPE html>\n\
-                            <html lang=\"en\">\n\
-                            <ol> ";
-                    while ((ent = readdir(dir)) != NULL)
-                    {
-                        std::string name = ent->d_name;
-                        std::string name1;
-                        if (url[0] == '/' && !url[1])
-                            name1 = name;
-                        else
-                            name1 = url + "/" + name;
-                        msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
-                    }
-                    msg += "</ol>\n\
-                           </html>";
-                    int len = msg.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(msg);
-                    respons = bady;
-                    closedir(dir);
-                    return;
-                }
                 else if (autoindex == "off" && location_and_url.first.getautoindex() == "on")
                     autoindex = "on";
                 else
                 {
-                    status = 403;
+                    if (fd == 0 || (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK)))
+                        status = 403;
+                    else
+                        status = 404;
                     std ::string bady;
-                    std ::string url3 = "error/403.html";
+                    std ::string url3 = "error/" + int_to_string(status) + ".html";
                     int i = open(url3.c_str(), O_RDWR);
+                    if (i == -1)
+                        return;
                     std::ifstream file(url3.c_str());
                     std::string http;
                     if (file)
@@ -424,11 +397,11 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     }
                     bady.append("HTTP/1.1 ");
                     bady.append(int_to_string(status));
-                    bady.append(" ErrorDocument \nServer: Server\nDate: ");
+                    bady.append(mesag_error1(status));
+                    bady.append("\nServer: Server\nDate: ");
                     time_t now = time(0);
                     char *time = ctime(&now);
                     bady.append(time);
-                    bady.append("\n");
                     bady.append("Content-Type: text/html\nContent-Length: ");
                     int len = http.length();
                     bady.append(int_to_string(len));
@@ -452,12 +425,10 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 bady.append(time);
                 if (dir != NULL)
                 {
-                    bady.append("\n");
                     bady.append("Content-Type: text/html\nContent-Length: ");
-
                     msg = "<!DOCTYPE html>\n\
-                            <html lang=\"en\">\n\
-                            <ol> ";
+                        <html lang=\"en\">\n\
+                        <ol> ";
                     while ((ent = readdir(dir)) != NULL)
                     {
                         std::string name = ent->d_name;
@@ -482,7 +453,6 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 {
                     bady.append("Content-Type: ");
                     bady.append(Content_type(root));
-                    bady.append("\n");
                     bady.append("\nContent-Length: ");
                     std::ifstream file(root.c_str());
                     std::string http;
@@ -502,10 +472,15 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 }
                 else
                 {
-                    status = 403;
+                    if ((!access(root.c_str(), F_OK) && access(root.c_str(), R_OK)))
+                        status = 403;
+                    else
+                        status = 404;
                     std ::string bady;
-                    std ::string url3 = "error/403.html";
+                    std ::string url3 = "error/" + int_to_string(status) + ".html";
                     int d = open(url3.c_str(), O_RDWR);
+                    if(d == -1)
+                        return ;
                     std::ifstream file(url3.c_str());
                     std::string http;
                     if (file)
@@ -516,9 +491,9 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     }
                     bady.append("HTTP/1.1 ");
                     bady.append(int_to_string(status));
-                    bady.append(" Forbidden \nServer: Server\nDate: ");
+                    bady.append(mesag_error1(status));
+                    bady.append("\nServer: Server\nDate: ");
                     bady.append(time);
-                    bady.append("\n");
                     bady.append("Content-Type: text/html\nContent-Length: ");
                     int len = http.length();
                     bady.append(int_to_string(len));
@@ -526,7 +501,6 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     bady.append(http);
                     respons = bady;
                     close(d);
-                    close(i);
                     return;
                 }
             }
@@ -549,10 +523,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 std ::string dl = "/" + root;
                 if (remove(root.c_str()) == 0)
                 {
-                    std ::cout << root << "|||||||||||||||\n";
                     status = 202;
                     respons = status_delete(status, "Accepted");
-                    std ::cout << respons << std ::endl;
                     return;
                 }
                 else
@@ -590,8 +562,9 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         }
         bady.append("HTTP/1.1 ");
         bady.append(int_to_string(status));
-        bady.append(" Forbidden \nServer: Server\nDate: ");
-        bady.append("\n");
+        bady.append(mesag_error1(status));
+        bady.append("\nServer: Server\nDate: ");
+        bady.append(time);
         bady.append("Content-Type: text/html\nContent-Length: ");
         int len = http.length();
         bady.append(int_to_string(len));

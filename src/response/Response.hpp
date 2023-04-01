@@ -20,20 +20,21 @@
 #include <string>
 #include "../request/Prasing_Request.hpp"
 #include "../Configfile/Configuration.hpp"
-
+#include "sys/wait.h"
 class Response
 {
 private:
     int status;
+    
     std ::map<std::string, std::string> mymap;
     std::string respons;
 
 public:
-    int run_cgi(Location location, std::string url, Configuration conf_serv);
+    int run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv);
     Response();
     Response(Prasing_Request rq, Configuration conf_serv);
     std ::string get_respons();
 };
-// std::vector<std::string> split_string(std::string str, char c);
-// std::string parsing_url(std::string url);
+std::string ft_read(std::string name);
+std::string int_to_string(int numb);
 #endif

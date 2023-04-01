@@ -21,12 +21,8 @@ private:
     std::vector<std::string> server_names;
     std::map<std::string, std::map<std::string, std::vector<std::string> > > locations;
     std::map<std::string, std::string> test;
-public:
-    std::map<std::string ,std::string> gettest()
-    {
-        return this->test;
-    }
     std::map<std::string, std::vector<std::string> > config_variable;
+public:
     Configuration(std::vector<std::string> &vect_conf);
     Configuration();
     void parsing_Config_file();
@@ -79,7 +75,7 @@ class Location{
     int getlocation_exist();
 
 };
-
+int ParsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
 void print_config(std::map<std::string, std::vector<std::string> > config_variable, std::map<std::string, std::map<std::string, std::vector<std::string> > > locations);
 void error_conf(int status);
 std::vector<std::string> split_string(std::string str, char c);

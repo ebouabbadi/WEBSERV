@@ -1,27 +1,18 @@
  
 #include "Configuration.hpp"
 #include "../webserv.hpp"
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////// ////////////////////////////////////////////////////
-//     ______      ____    _____  _____    _______   _________   _______    _____    ____     ______   _________      ____     _______      //
-//   .' ___  |   .'    `. |__   \|_   _   /  ___  | |  _   _  | |_   __ \  |_   _|  |_   |  .' ___  | |  _   _  |   .'    `.  |_   __ \     //
-//  / .'   \_|  /  .--.  \   |   \ | |   |  (__ \_| |_/ | | \_|   | |__) |   | |      | |  / .'   \_| |_/ | | \_|  /  .--.  \   | |__) |    //
-//  | |         | |    | |   | |\ \| |    '.___`-.      | |       |  __ /    | '      ' |  | |            | |      | |    | |   |  __ /     //
-//  \ `.___.'\  \  `--'  / __| |_\   |_  |`\____) |    _| |_     _| |  \ \    \ `-----'/   \ `.___.'\    _| |_     \  `--'  /  _| |  \ \_   //
-//   `._____.'   `.____.' |______|\____| |_______.'   |_____|   |____| |__|    `.____.'     `._____.'   |_____|     `.____.'  |____| |___|  //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Configuration::Configuration()
 {
+}
 
+Configuration::~Configuration()
+{
 }
 Configuration::Configuration(std::vector<std::string> &vect_conf)
 {    
 
     this->config = vect_conf;
+
     if (handling_bracket())
         error_conf(3);
     syntax_error();
@@ -30,27 +21,31 @@ Configuration::Configuration(std::vector<std::string> &vect_conf)
     config_valide();
 }
 
+
+
 void Configuration::config_valide()
 {
     std::map<std::string, std::vector<std::string > >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
-    
     {
         it->second.pop_back();
         if(!it->first.compare("listen"))
         {
             if(it->second.size() != 1)
                 error_conf(330);
-        }
-        else if(!it->first.compare("server_name"))
-        {
-            if(it->second.size() != 1)
-                error_conf(331);
+            std::string listen = it->second[0];
+            for (size_t i = 0; i < listen.size(); i++)
+            {
+                if (!isdigit(listen[i]))
+                    error_conf(100);
+            }
         }
         else if(!it->first.compare("host"))
         {
             if(it->second.size() != 1)
                 error_conf(332);
+            else if (it->second[0].compare("localhost") && it->second[0].compare("127.0.0.1"))
+                error_conf(101);
         }
         else if(!it->first.compare("root"))
         {
@@ -61,6 +56,12 @@ void Configuration::config_valide()
         {
             if(it->second.size() != 1)
                 error_conf(334);
+            std::string listen = it->second[0];
+            for (size_t i = 0; i < listen.size(); i++)
+            {
+                if (!isdigit(listen[i]))
+                    error_conf(100);
+            }
         }
         else if(!it->first.compare("index"))
         {
@@ -68,75 +69,49 @@ void Configuration::config_valide()
                 error_conf(335);
         }
         else
-        {
-            std::cout<<"error varaible11 "<<it->first<<":\n\n";
-            exit(1);
-        }
+            error_conf(336);
         it++;
     }  
     std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it2 = this->locations.begin();
     while(it2 != this->locations.end())
     {
         std::map<std::string, std::vector<std::string> >::iterator it3 =  it2->second.begin();
-        while (it3 != it2->second.end())
+        if(!it2->first.compare("/cgi-bin"))
         {
-            if(!it3->first.compare("root"))
+            while (it3 != it2->second.end())
             {
-                if(it3->second.size() != 1)
-                    error_conf(222);
+                int check = ParsingLocation(it3);
+                if (check == 1)
+                    error_conf(337);
+                else if (check == 2)
+                {
+                    if(!it3->first.compare("cgi_execute"))
+                    {
+                        if((it3->second[0].compare(".py") || it3->second[1].compare(".php")) 
+                            && (it3->second[0].compare(".php") || it3->second[1].compare(".py")))
+                            error_conf(337);
+                        else
+                            ;
+                    }
+                }
+                it3++;
             }
-            else if(!it3->first.compare("cgi_execute"))
-            ;
-            else if(!it3->first.compare("index"))
+        }
+        else
+        {
+            while (it3 != it2->second.end())
             {
-                if(it3->second.size() != 1)
-                    error_conf(222);
+                int check = ParsingLocation(it3);
+                if (check == 1)
+                    error_conf(337);
+                else if (check == 2)
+                    error_conf(337);
+                it3++;
             }
-            else if(!it3->first.compare("autoindex"))
-            {
-                if(it3->second.size() != 1)
-                    error_conf(222);
-            }
-            else if(!it3->first.compare("allow_methods"))
-            ;
-            else if(!it3->first.compare("limit_client_body_size"))
-            {
-                if(it3->second.size() != 1)
-                    error_conf(222);
-            }
-            else
-            {
-                std::cout<<"error varaible22 "<<it3->first <<":\n\n";
-                exit(1);
-            }
-            it3++;
         }
         it2++;
     }
 }
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  ________    _________     _______   _________   _______     _____    ____      ______   _________     ____     _______     //
-// |_   ___ `. |_   ___  |   /  ___  | |  _   _  | |_   __ \   |_   _|  |_   |   .' ___  | |  _   _  |  .'    `.  |_   __ \    //
-//   | |   `. \  | |_  \_|  |  (__ \_| |_/ | | \_|   | |__) |    | |      | |   / .'   \_| |_/ | | \_| /  .--.  \   | |__) |   //
-//   | |    | |  |  _|  _    '.___`-.      | |       |  __ /     | '      ' |   | |            | |     | |    | |   |  __ /    //
-//  _| |___.' / _| |___/ |  |`\____) |    _| |_     _| |  \ \_    \ `-----'/    \ `.___.'\    _| |_    \  `--'  /  _| |  \ \_  //
-// |________.' |_________|  |_______.'   |_____|   |____| |___|    `.____.'      `._____.'   |_____|    `.____.'  |____| |___| //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Configuration::~Configuration()
-{
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  ____    ___  _________  ____    ___   ______     _________   _______        _________   _____    ____   ____  _____     ______   _________   _____     ____   _____  _____   //
-// |_   \  /  _||_   ___  | _   \  /     |_   _ \   |_   ___  | |_   __ \      |_   ___  | |_   _|  |_   | |_   \|_   _|  .' ___  | |  _   _  | |_   _|  .'    `. |_   \|_   _|  //
-//   |   \/   |   | |_  \_|  |   \/   |    | |_) |    | |_  \_|   | |__) |       | |_  \_|   | |      | |    |   \ | |   / .'   \_| |_/ | | \_|   | |   /  .--.  \  |   \ | |    //
-//   | |\  /| |   |  _|  _   | |\  /| |    |  __'.    |  _|  _    |  __ /        |  _|       | '      ' |    | |\ \| |   | |            | |       | |   | |    | |  | |\ \| |    //
-//  _| |_\/_| |  _| |___/ | _| |_\/_| |_  _| |__)|   _| |___/ |  _| |  \ \      _| |_         \ `-----'/    _| |_\   |_  \ `.___.'\    _| |_     _| |_  \  `--'  / _| |_\   |_   //
-// |_____||____||_________| _____||_____ |_______/  |_________| |____| |__|    |_____|         `.____.'    |_____|\____|  `._____.'   |_____|   |_____|  `.____.' |_____|\____|  //
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 std::vector<std::string> split_string(std::string str, char c)
 {
@@ -162,7 +137,6 @@ std::vector<std::string> split_string(std::string str, char c)
     return vect;
 }
 
-
 std::string parsing_url(std::string url)
 {
     std::string new_url;
@@ -181,7 +155,6 @@ std::string parsing_url(std::string url)
 }
 
 void Configuration::parsing_Config_file()
-
 {
 
     int i = 2;
@@ -243,13 +216,10 @@ void Configuration::parsing_Config_file()
         i++;
         i++;
     }
-    //print_config(this->config_variable, this->locations);
 }
 
 void  Configuration::init_my_config()
 {
-
-
     std::map<std::string, std::vector<std::string> >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
     {
@@ -265,19 +235,13 @@ void  Configuration::init_my_config()
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
             this->index = it->second;
+        else
+        {
+                exit(1);
+        }
         it++;
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////////////
-//    ______    _________   _________               _______   _________   _________  //
-//  .' ___  |  |_   ___  | |  _   _  |             /  ___  | |_   ___  | |  _   _  | //
-// / .'   \_|    | |_  \_| |_/ | | \_|  ________  |  (__ \_|   | |_  \_| |_/ | | \_| //
-// | |    ____   |  _|  _      | |     |________|  '.___`-.    |  _|  _      | |     //
-// \ `.___]  _/ _| |___/ |    _| |_               |`\____) |  _| |___/ |    _| |_    //
-//  `._____.'  |_________|   |_____|              |_______.' |_________|   |_____|   //
-///////////////////////////////////////////////////////////////////////////////////////  
-
 
 std::map<std::string, std::vector<std::string> > Configuration::getconfig_variable()
 {
