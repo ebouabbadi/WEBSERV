@@ -40,6 +40,11 @@ void Configuration::config_valide()
                     error_conf(100);
             }
         }
+        else if (!it->first.compare("error"))
+        {
+            if (it->second.size() != 1)
+                error_conf(303);
+        }
         else if(!it->first.compare("host"))
         {
             if(it->second.size() != 1)
@@ -80,8 +85,18 @@ void Configuration::config_valide()
         {
             while (it3 != it2->second.end())
             {
-                int check = ParsingLocation(it3);
-                if (check == 1)
+                int check = parsingLocation(it3);
+                if (!it3->first.compare("index"))
+                {
+                    for (size_t i = 0; i < it3->second.size(); i++)
+                    {
+                        int ind = it3->second[i].find(".");
+                        std::string str = it3->second[i].substr(ind, it3->second[i].length());
+                        if (str.compare(".py") && str.compare(".php"))
+                            error_conf(123);
+                    }
+                }
+                else if (check == 1)
                     error_conf(337);
                 else if (check == 2)
                 {
@@ -101,7 +116,7 @@ void Configuration::config_valide()
         {
             while (it3 != it2->second.end())
             {
-                int check = ParsingLocation(it3);
+                int check = parsingLocation(it3);
                 if (check == 1)
                     error_conf(337);
                 else if (check == 2)
@@ -235,6 +250,8 @@ void  Configuration::init_my_config()
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
             this->index = it->second;
+        else if (!it->first.compare("error"))
+            this->error = it->second[0];
         else
         {
                 exit(1);

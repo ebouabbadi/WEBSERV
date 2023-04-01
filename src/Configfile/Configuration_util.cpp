@@ -27,7 +27,26 @@ void print_config(std::vector<std::pair<std::string, std::vector<std::string> > 
     }
 }
 
-int ParsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3)
+bool searchStr(std::map<std::string, std::vector<std::string> >::iterator it3) 
+{
+    int d = 0, p = 0, g = 0;
+    for (size_t i = 0; i < it3->second.size(); i++)
+    {
+        if (!it3->second[i].compare("DELETE"))
+            d++;
+        else if (!it3->second[i].compare("POST"))
+            p++;
+        else if (!it3->second[i].compare("GET"))
+            g++;
+        else
+            return (false);
+    }
+    if (d > 1 || p > 1 || g > 1)
+        return (false);
+    return true;
+}
+
+int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3)
 {
     if(!it3->first.compare("root"))
     {
@@ -48,7 +67,8 @@ int ParsingLocation(std::map<std::string, std::vector<std::string> >::iterator i
     }
     else if(!it3->first.compare("allow_methods"))
     {
-        ;
+        if (searchStr(it3) == false)
+            error_conf(101);
     }       
     else if(!it3->first.compare("limit_client_body_size"))
     {

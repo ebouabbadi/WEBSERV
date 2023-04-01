@@ -13,6 +13,7 @@ class Configuration
 private:
     std::vector<std::string> config;
     int listen ;
+    std::string error;
     std::string root;
     std::string host;
     std::vector<std::string> cgi;
@@ -75,7 +76,7 @@ class Location{
     int getlocation_exist();
 
 };
-int ParsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
+int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
 void print_config(std::map<std::string, std::vector<std::string> > config_variable, std::map<std::string, std::map<std::string, std::vector<std::string> > > locations);
 void error_conf(int status);
 std::vector<std::string> split_string(std::string str, char c);
