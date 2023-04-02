@@ -13,7 +13,7 @@ class Configuration
 private:
     std::vector<std::string> config;
     int listen ;
-    std::string error;
+    std::map<int, std::string>  error;
     std::string root;
     std::string host;
     std::vector<std::string> cgi;

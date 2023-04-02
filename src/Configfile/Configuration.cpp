@@ -28,6 +28,7 @@ void Configuration::config_valide()
     std::map<std::string, std::vector<std::string > >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
     {
+        std::string str = it->first.substr(0, 6);
         it->second.pop_back();
         if(!it->first.compare("listen"))
         {
@@ -40,10 +41,18 @@ void Configuration::config_valide()
                     error_conf(100);
             }
         }
-        else if (!it->first.compare("error"))
+        else if (!str.compare("error_"))
         {
             if (it->second.size() != 1)
                 error_conf(303);
+            std::string mote = it->first.substr(6, it->first.length());
+            if (it->first.length() != 9)
+                error_conf(103);
+            for (size_t i = 0; i < mote.size(); i++)
+            {
+                if (!isdigit(mote[i]))
+                    error_conf(100);
+            }
         }
         else if(!it->first.compare("host"))
         {
@@ -238,6 +247,7 @@ void  Configuration::init_my_config()
     std::map<std::string, std::vector<std::string> >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
     {
+        std::string str = it->first.substr(0, 6);
         if(!it->first.compare("listen"))
             this->listen = atoi(it->second[0].c_str());
         else if(!it->first.compare("server_name"))
@@ -250,14 +260,15 @@ void  Configuration::init_my_config()
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
             this->index = it->second;
-        else if (!it->first.compare("error"))
-            this->error = it->second[0];
+        else if (!str.compare("error_"))
+            this->error.insert(std::make_pair(atoi(it->first.substr(6, 3).c_str()), it->second[0]));
         else
-        {
-                exit(1);
-        }
+            error_conf(303);
         it++;
     }
+    // for ( std::map<int, std::string> ::iterator it= error.begin(); it != error.end(); ++it) {
+    //     std::cout <<"error = "<< it->first << ": " << it->second << std::endl;
+    // }
 }
 
 std::map<std::string, std::vector<std::string> > Configuration::getconfig_variable()

@@ -46,6 +46,16 @@ bool searchStr(std::map<std::string, std::vector<std::string> >::iterator it3)
     return true;
 }
 
+int ft_isdigit(std::string str)
+{
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        if (!isdigit(str[i]))
+            return (1);
+    }
+    return (0);
+}
+
 int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3)
 {
     if(!it3->first.compare("root"))
