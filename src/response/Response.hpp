@@ -17,6 +17,11 @@
 #include <arpa/inet.h>
 #include <map>
 #include <sstream>
+#include <ctime>
+#include <fstream>
+#include <filesystem>
+#include <dirent.h>
+#include <iostream>
 #include <string>
 #include "../request/Prasing_Request.hpp"
 #include "../Configfile/Configuration.hpp"
@@ -27,6 +32,7 @@ private:
     int status;
     
     std ::map<std::string, std::string> mymap;
+    std ::map<int , std::string> mymap_erorr;
     std::string respons;
 
 public:
@@ -37,4 +43,6 @@ public:
 };
 std::string ft_read(std::string name);
 std::string int_to_string(int numb);
+std ::string Content_type(std ::string root);
+
 #endif

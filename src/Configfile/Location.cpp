@@ -1,3 +1,6 @@
+
+ 
+
 #include "Configuration.hpp"
 std::vector<std::string> search_in_location_vector(std::vector<std::pair<std::string, std::vector<std::string> > > &location, std::string varaible)
 {
@@ -37,9 +40,9 @@ Location::Location(Configuration &conf, std::string path)
                 if (!it2->first.compare("allow_methods"))
                     this->allow_methods = it2->second;
                 if (!it2->first.compare("cgi_execute"))
-                    this->cgi_execute = it2->second;
-                if (!it2->first.compare("return_path"))
-                    this->return_path = it2->second[0];
+                    this->cgi_execute = it2->second[0];
+                if (!it2->first.compare("return"))
+                    this->_return = it2->second;
                 if (!it2->first.compare("cgi_path"))
                     this->cgi_path = it2->second[0];
                 if (!it2->first.compare("index"))
@@ -79,14 +82,14 @@ std::string Location::getcgi_path()
 {
     return this->cgi_path;
 }
-std::vector<std::string> Location::getcgi_execute()
+std::string Location::getcgi_execute()
 {
     return this->cgi_execute;
 }
 
-std::string Location::getreturn_path()
+std::vector<std::string> Location::getreturn()
 {
-    return this->return_path;
+    return this->_return;
 }
 
 int Location::getlocation_exist()

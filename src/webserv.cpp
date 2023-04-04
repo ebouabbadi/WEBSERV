@@ -116,7 +116,7 @@ int Webserv::init_server()
 
         // bind the socket to localhost port 5500
         if (bind(sockfd, (struct sockaddr *)(&serv_addr), sizeof(serv_addr)) == -1)
-            ft_exit("1");
+            ;
         if (listen(sockfd, 5) == -1)
             ft_exit("2");
         _servers.insert(std::make_pair(sockfd, _confgs[i]));
@@ -139,7 +139,6 @@ int Webserv::setup_poollfd()
     }
     return 0;
 }
-
 int Webserv::ft_accept(pollfd &tmp_fd)
 {
     struct sockaddr_in cli_addr;
@@ -163,34 +162,55 @@ int Webserv::ft_accept(pollfd &tmp_fd)
         accepted.events = POLLIN;
         Client *client = new Client(_servers[tmp_fd.fd]);
         client->plfd = accepted;
+        client->setConnecfd(tmp_fd.fd);
         _clients.push_back(client);
         std::cout << std::endl;
         _pollfd.push_back(accepted);
     }
     return 0;
 }
-
-int Webserv::ft_recv(pollfd &tmp_fd, int j)
+std::string g;
+int Webserv::server_matching(int j)
 {
-    char buf[BUFFERSIZE];
-    bzero(buf, BUFFERSIZE);
-    int n = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
-    // std::cout<<"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n";
-    // std::cout<<buf;
-    // std::cout<<"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n";
+    int num;
+    num = 0;
+    int flag = false;
+    std::map<int, Configuration>::iterator it = _servers.begin();
+    while(it != _servers.end())
+    {
+
+    }
+    if(num >= 2)
+    {
+
+    }
+    // if(flag);
+    return 0;
+}
+int Webserv::ft_recv(pollfd &tmp_fd,int i, int j)
+{
+    char buf2[BUFFERSIZE];
+    bzero(buf2, BUFFERSIZE);
+    int n = read(tmp_fd.fd, buf2, BUFFERSIZE);
+
+    // std::cout<<buf2;
+    // std::cout<<"rr = "<<r<< "mmm ="<<m<<std::endl;
     if (n == 0)
     {
         printf("client %d closed connection\n", tmp_fd.fd);
         close(tmp_fd.fd);
-        tmp_fd.fd = -1;
+        _pollfd.erase(_pollfd.begin() + i);
+        _clients.erase(_clients.begin() + j);
         return 1;
     }
-    _clients[j]->setReuqst(buf);
+    // std::string a = std::string(buf2);
+    _clients[j]->setReuqst(buf2, n);
     _clients[j]->find_request_eof();
     if (_clients[j]->getEof() == true)
     {
         tmp_fd.events = POLLOUT;
-        // std::cout << _clients[j]->getReuqst() << std::endl;
+        // server_matching(tmp_fd.fd);
+        // std::cout << _clients[j]->getReuqst() << std::endl<<"\n\n\n\n\n\n-";
         Prasing_Request prs_reqst(_clients[j]->getReuqst());
         _clients[j]->setParsingRequest(prs_reqst);
         Response response(prs_reqst, _clients[j]->getConfiguration());
@@ -199,14 +219,11 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
     }
     return 0;
 }
+
 int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
 {
-    std::cout<<_clients[j]->getMessage();
+    // std::cout<<_clients[j]->getMessage();
     int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
-    std::cout<<_clients[j]->getMessage().c_str();
-    std::cout<<"???????????????????????????????????????????????????????????????????????\n";
-    std::cout<<_clients[j]->getMessage();
-    std::cout<<"???????????????????????????????????????????????????????????????????????\n";
     // std::cout<<"----------2\n";
     _clients[j]->setMessage(_clients[j]->getMessage(), n);
     if (_clients[j]->getMessage().empty())
@@ -240,7 +257,7 @@ int Webserv::run_server()
                 for (int j = 0; j < _clients.size(); j++)
                 {
                     if (_clients[j]->plfd.fd == _pollfd[i].fd)
-                        ft_recv(_pollfd[i], j);
+                        ft_recv(_pollfd[i],i, j);
                 }
             }
             if ((_pollfd[i].revents & POLLOUT))

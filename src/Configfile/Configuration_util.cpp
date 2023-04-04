@@ -109,7 +109,7 @@ void error_conf(int status)
     std::cout<<"    limit_client_body_size 500;"<<std::endl;
     std::cout<<""<<std::endl;
     std::cout<<"    location / {"<<std::endl;
-    std::cout<<"        allow_methods  HEAD POST DELETE;"<<std::endl;
+    std::cout<<"        allow_methods  GET POST DELETE;"<<std::endl;
     std::cout<<"        root www;"<<std::endl;
     std::cout<<"        index index.html;"<<std::endl;
     std::cout<<"        autoindex off;"<<std::endl;
@@ -120,7 +120,7 @@ void error_conf(int status)
     std::cout<<"    }"<<std::endl;
     std::cout<<""<<std::endl;
     std::cout<<"    location /cgi-bin {"<<std::endl;
-    std::cout<<"        allow_methods  HEAD POST;"<<std::endl;
+    std::cout<<"        allow_methods  GET POST;"<<std::endl;
     std::cout<<"        root www/;"<<std::endl;
     std::cout<<"        autoindex off;"<<std::endl;
     std::cout<<"        index index.py index.php;"<<std::endl;

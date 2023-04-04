@@ -17,7 +17,7 @@ private:
     std::string root;
     std::string host;
     std::vector<std::string> cgi;
-    std::vector<std::string> index;
+    std::string index;
     std::string limit_client_body_size;
     std::vector<std::string> server_names;
     std::map<std::string, std::map<std::string, std::vector<std::string> > > locations;
@@ -45,20 +45,24 @@ public:
     std::string getlimit_client_body_size();
     std::string gethost();
     std::string getroot();
-    std::vector<std::string> getindex();
+    std::string getindex();
+    std::map<int , std::string> geterror()
+    {
+        return this->error;
+    }
     std::vector<std::string> getcgi();
     std::vector<std::string> getserver_names();
 };
 
-class Location{
+class Location {
     private:
     int location_exist;
     std::string root;
     std::string autoindex;
     std::string index;
     std::string cgi_path;
-    std::string return_path;
-    std::vector<std::string> cgi_execute;
+    std::vector<std::string> _return;
+    std::string cgi_execute;
     std::vector<std::string> allow_methods;
     public :
     Location()
@@ -70,8 +74,8 @@ class Location{
     std::string getautoindex();
     std::string getindex();
     std::string getcgi_path();
-    std::string getreturn_path();
-    std::vector<std::string> getcgi_execute();
+    std::vector<std::string> getreturn();
+    std::string getcgi_execute();
     std::vector<std::string> getallow_methods();
     int getlocation_exist();
 
