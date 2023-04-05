@@ -168,8 +168,8 @@ std ::vector<std ::string> ft_split(std::string str, std::string delimiter)
 int Client::find_request_eof()
 {
     std::string farstline;
-    if (_readyToRecv)
-    {
+    // if (_readyToRecv)
+    // {
         if (find_content_length())
         {
             _readyToRecv = false;
@@ -179,7 +179,7 @@ int Client::find_request_eof()
         {
 
         }
-    }
+    // }
     if (_reuqst.find("\r\n\r\n") != std::string::npos && _headrs.empty())
     {
         _headrs = _reuqst.substr(0, _reuqst.find("\r\n\r\n")) + "\r\n\r\n";
