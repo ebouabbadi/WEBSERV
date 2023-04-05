@@ -224,6 +224,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 {
                     if (!location_and_url.second.compare("/cgi-bin"))
                     {
+                        std::cout<<"*****************************************\n";
                         run_cgi(location_and_url.first, rq, conf_serv,url2);
                         return;
                     }

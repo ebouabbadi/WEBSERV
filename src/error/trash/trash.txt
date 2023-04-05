@@ -1,41 +1,80 @@
 Status: 404 Not Found
 X-Powered-By: PHP/8.1.12
-Centent-type: text/html
-Set-Cookie: mehdi=value; expires=Wed, 05-Apr-2023 07:21:17 GMT; Max-Age=60; path=/; domain=localhost
 Content-type: text/html; charset=UTF-8
-
-
 
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>COOKIES</title>
-    <link rel='stylesheet' type='text/css' href='../STYLE/styleCookies.css'>
+	<title>Calculator</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		h1 {
+			text-align: center;
+			margin-top: 30px;
+		}
+		form {
+			width: 400px;
+			margin: 0 auto;
+			text-align: center;
+		}
+		label {
+			display: inline-block;
+			width: 150px;
+			text-align: right;
+			margin-bottom: 10px;
+		}
+		input[type="number"], select {
+			padding: 5px;
+			border: 1px solid #ccc;
+			border-radius: 3px;
+			margin-bottom: 10px;
+			width: 200px;
+			box-sizing: border-box;
+			font-size: 16px;
+		}
+		input[type="submit"] {
+			background-color: #4CAF50;
+			color: white;
+			padding: 10px 20px;
+			border: none;
+			border-radius: 3px;
+			cursor: pointer;
+			font-size: 16px;
+			margin-top: 10px;
+		}
+		input[type="submit"]:hover {
+			background-color: #3e8e41;
+		}
+		.result {
+			margin-top: 30px;
+			text-align: center;
+			font-size: 24px;
+		}
+	</style>
 </head>
-
 <body>
-    <div class='main'>
-        <div class='navbar'>
-            <div class='icon'>
-                <a href='../index.html'>
-                    <h2 class='logo'>WEBSERV</h2>
-                </a>
-            </div>
-            <div class='menu'>
-                <ul>
-                    <li><a href='../index.html'>HOME</a></li>
-                    <li><a href='../FOUNDERS/founders.html'>FOUNDERS</a></li>
-                    <li><a href='../SERVIES/servies.html'>SERVIES</a></li>
-                    <li><a href='../COOKIES/cookies.html'>COOKIES</a></li>
-                    <li><a href='../CGI/cgi.html'>CGI</a></li>
-                </ul>
-            </div>
-            </div>
-            <div class='container'>
-            <h4>Cookies is Geting</h4>
-            </div>
-            </div>
+	<h1>Calculator</h1>
+	<form method="post" action="">
+		<label for="num1">Enter the first number:</label>
+		<input type="number" id="num1" name="num1"><br>
+		<label for="num2">Enter the second number:</label>
+		<input type="number" id="num2" name="num2"><br>
+		<label for="operator">Select an operator:</label>
+		<select id="operator" name="operator">
+			<option value="+">+</option>
+			<option value="-">-</option>
+			<option value="*">*</option>
+			<option value="/">/</option>
+		</select><br>
+		<input type="submit" value="Calculate">
+	</form>
+	<div class="result">
+		<br />
+<b>Warning</b>:  Undefined array key "REQUEST_METHOD" in <b>/Users/ebouabba/Desktop/WEBSERV/www/cgi-bin/index.php</b> on line <b>74</b><br />
+    </div>
 </body>
-
 </html>

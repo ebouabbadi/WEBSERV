@@ -207,6 +207,8 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
         index2 = body2.find(nb, fin);
         fin = body2.find(nb, index2 + 1);
         std ::cout << i << " " << index2 << " " << fin << std ::endl;
+        if(fin == -1 || index2 == -1)
+            return ;
         if (index != std ::string::npos && fin != std::string::npos)
         {
             one_body.push_back(body2.substr(index2, fin - index2));
