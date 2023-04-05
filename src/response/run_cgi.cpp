@@ -50,25 +50,30 @@ char **get_env_form_map(std::map<std::string, std::string> &map_env)
 
 char **init_may_env(Location &location, Prasing_Request &requst, Configuration &conf_serv)
 {
-            std::string name;
-            std::string value;
-        std::string url1 = requst.get_budy_url();
-        std::cout<<" ->>>>" <<url1<<std::endl;
-        int i = 0;
-        if (!url1.empty())
-        {            
-            int lenName = url1.find("=");
+    std::string name;
+    std::string value;
+    std::string url1 = requst.get_budy_url();
+    if (!url1.empty())
+    {            
+        int lenName = url1.find("=");
+        if (lenName == -1)
+            ;
+        else
+        {
             lenName++;
             for (; url1[lenName] != '&'; lenName++)
                 name += url1[lenName];
-
-            int lenValue = url1.find("=", lenName);
-            lenValue++;
-             for (; lenValue < url1.size(); lenValue++)
-                value += url1[lenValue];
-            std :: cout << name <<"="<<value << std ::endl;
         }
-
+        int lenValue = url1.find("=", lenName);
+        if (lenValue == -1)
+            ;
+        else
+        {
+            lenValue++;
+            for (; lenValue < url1.size(); lenValue++)
+                value += url1[lenValue];
+        }
+    }
     std::string url = parsing_url(requst.get_url());
     std::map<std::string, std::string> map_env;
     char *ptr;
@@ -99,8 +104,14 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
     map_env["SCRIPT_NAME"] = url;
     map_env["AUTH_TYPE"] = "Basic";
     map_env["CONTENT_TYPE"] = "";
-    map_env["NAME"] = name;
-    map_env["VALUE"] = value;
+    if (!name.empty() || !name.empty())
+    {
+        std::cout<<"++++fd++++++fd++++++fd+++++fd+++++fd++++++++fd+++\n";
+            std :: cout << name <<"="<<value << std ::endl;
+        map_env["NAME"] = name;
+        map_env["VALUE"] = value;
+        std::cout<<"+++fd++++++++fd+++++++fd++++fd++++++fd++++++fd+++\n";
+    }
     char **envp = get_env_form_map(map_env);
     return envp;
 }
