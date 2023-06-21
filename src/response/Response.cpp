@@ -3,6 +3,9 @@
 Response::Response()
 {
 }
+Response::~Response()
+{
+}
 std::string int_to_string(int numb)
 {
     std::ostringstream ss;
@@ -12,7 +15,7 @@ std::string int_to_string(int numb)
 
 std ::string chec_url(std ::string urll)
 {
-    int i = 0;
+    size_t i = 0;
     int j = 0;
     std ::string result;
     while (urll[i] == '/')
@@ -30,44 +33,10 @@ std ::string chec_url(std ::string urll)
     return result;
 }
 
-std::pair<Location, std::string> find_location(std::string url, Configuration conf_serv)
-{
-    url = parsing_url(url);
-    std::vector<std::string> vect_str = split_string(url, '/');
-    std::string url_check;
-    int len = vect_str.size();
-    while (1)
-    {
-        url_check = "/";
-        int i = 0;
-        while (i < len)
-        {
-            url_check += vect_str[i];
-            if (i != len - 1)
-                url_check += "/";
-            i++;
-        }
-        len--;
-        std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it = conf_serv.getlocations().begin();
-        while (it != conf_serv.getlocations().end())
-        {
-            if (!it->first.compare(url_check))
-            {
-                Location location(conf_serv, it->first);
-                return std::pair<Location, std::string>(location, it->first);
-            }
-            it++;
-        }
-        if (!url_check.compare("/"))
-            break;
-    }
-    return std::pair<Location, std::string>(Location(), std::string());
-}
-
 std ::string status_delete(int status, std ::string str, std ::map<int, std::string> mymap_erorr)
 {
     std ::string bady;
-    std ::string url3; // = "error/" + int_to_string(status) + ".html";
+    std ::string url3;
     int h;
     if ((h = open(mymap_erorr[status].c_str(), O_RDWR)) != -1)
     {
@@ -79,7 +48,9 @@ std ::string status_delete(int status, std ::string str, std ::map<int, std::str
 
     int d = open(url3.c_str(), O_RDWR);
     if (d == -1)
+    {
         return (NULL);
+    }
     time_t now = time(0);
     char *time = ctime(&now);
     std::ifstream file(url3.c_str());
@@ -138,9 +109,10 @@ std ::string check_auto(Location &location, Configuration &conf_serv, std ::stri
         str = root + "/" + conf_serv.getindex();
     return str;
 }
-Response::Response(Prasing_Request rq, Configuration conf_serv)
+Response::Response(Request rq, Configuration conf_serv)
 {
-    std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
+    std::string str99;
+    std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv, str99);
     int found_method = 0;
     std ::string root;
     std ::string url2;
@@ -150,13 +122,14 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     status = rq.get_status();
     mymap = rq.get_mymap();
     mymap_erorr = conf_serv.geterror();
-    std ::string url = rq.get_url();
+    std ::string url =  "/" + rq.getUrl2();
+    //rq.get_url();
     std ::string method = rq.get_method();
-    std :: cout <<"__________________________" <<url << "___________________________\n";
-    for (int i = 0; i < location_and_url.first.getallow_methods().size(); i++)
+    std::cout << "___________________________________"<<rq.get_url()<<"________________________________\n";
+    for (size_t i = 0; i < location_and_url.first.getallow_methods().size(); i++)
         if (method == location_and_url.first.getallow_methods()[i])
-            found_method = 1;    
-    if(status == 200)
+            found_method = 1;
+    if (status == 200)
     {
         if (location_and_url.first.getroot().empty() && conf_serv.getroot().empty())
             status = 403;
@@ -195,7 +168,6 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         if (dir)
             closedir(dir);
     }
-    // std:: cout << "hna haa 2\n";
     if (status == 200)
     {
         if (method == "POST" || method == "GET")
@@ -208,15 +180,20 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
             else
                 dir = opendir(url2.c_str());
             std::string url1;
-            if (!location_and_url.first.getreturn().empty())
+            if (rq.get_url() == location_and_url.second)
             {
-                std ::string bady;
-                bady = "HTTP/1.1 301 Moved Permanently";
-                bady.append("\nLocation: ");
-                bady.append(location_and_url.first.getreturn()[1]);
-                bady.append("\n");
-                respons = bady;
-                return;
+
+                if (!location_and_url.first.getreturn().empty())
+                {
+                    std ::string bady;
+                    bady = "HTTP/1.1 301 Moved Permanently";
+                    bady.append("\nLocation: ");
+                    bady.append(location_and_url.first.getreturn()[1]);
+                    bady.append("\n");
+                    respons = bady;
+
+                    return;
+                }
             }
             if (autoindex == "off")
             {
@@ -224,9 +201,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 {
                     if (!location_and_url.second.compare("/cgi-bin"))
                     {
-                        std::cout<<"*****************************************\n";
-                        run_cgi(location_and_url.first, rq, conf_serv,url2);
-                        return;
+                        if (run_cgi(location_and_url.first, rq, conf_serv, url2))
+                            return;
                     }
                     std ::string bady;
                     std::ifstream file(url2.c_str());
@@ -258,7 +234,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     autoindex = "on";
                 else
                 {
-                    std ::string url3; //= "error/" + int_to_string(status) + ".html";
+                    std ::string url3;
                     int h;
                     if (dir != NULL || fd == 0 || (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK)))
                     {
@@ -336,7 +312,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                             name1 = name;
                         else
                             name1 = url + "/" + name;
-                        msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
+                        if (name != ".")
+                            msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
                     }
                     msg += "</ol>\n\
                            </html>";

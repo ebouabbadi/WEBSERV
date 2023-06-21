@@ -24,7 +24,8 @@ void free_tab(char **envp)
     {
         free(envp[i]);
     }
-    free(envp);
+    if(envp)
+        free(envp);
 }
 
 char **get_env_form_map(std::map<std::string, std::string> &map_env)
@@ -48,15 +49,15 @@ char **get_env_form_map(std::map<std::string, std::string> &map_env)
     return envp;
 }
 
-char **init_may_env(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+char **init_may_env(Request &requst, Configuration &conf_serv)
 {
     std::string name;
     std::string value;
     std::string url1 = requst.get_budy_url();
     if (!url1.empty())
-    {            
-        int lenName = url1.find("=");
-        if (lenName == -1)
+    {     
+        size_t lenName = url1.find("=");
+        if (lenName == std::string::npos)
             ;
         else
         {
@@ -64,8 +65,8 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
             for (; url1[lenName] != '&'; lenName++)
                 name += url1[lenName];
         }
-        int lenValue = url1.find("=", lenName);
-        if (lenValue == -1)
+        size_t lenValue = url1.find("=", lenName);
+        if (lenValue == std::string::npos)
             ;
         else
         {
@@ -82,11 +83,10 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
         map_env["CONTENT_LENGTH"] = "";
     map_env["CONTENT_TYPE"] = "";
     map_env["HTTP_COOKIE"] =  requst.get_mymap()["Cookie"];
-    std::cout<< map_env["HTTP_COOKIE"]<<std::endl;
     map_env["HTTP_USER_AGENT"] = requst.get_mymap()["User-Agent"];
     map_env["PATH_INFO"] = requst.get_mymap()[""];
     map_env["QUERY_STRING"] = requst.get_budy_url();
-    map_env["REMOTE_ADDR"] = "localhost" + int_to_string(conf_serv.getlisten());
+    map_env["REMOTE_ADDR"] = requst.get_mymap()["localhost"] + int_to_string(conf_serv.getlisten());
     // map_env["REQUEST_METHOD"] = requst.get_method();
     map_env["SCRIPT_FILENAME"] = requst.get_url().substr(requst.get_url().rfind("/"), requst.get_url().size());
     // map_env["SERVER_NAME"] = "localhost";
@@ -95,23 +95,20 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
     map_env["SERVER_PROTOCOL"] = "HTTP/1.1";
     ptr = getcwd(NULL, 0);
     if (ptr)
-        map_env["PATH_TRANSLATED"] = (std::string)getcwd(NULL, 0);
+        map_env["PATH_TRANSLATED"] = (std::string)ptr;
     else
         map_env["PATH_TRANSLATED"] = "";
     if(ptr)
         free(ptr);
+    if (!name.empty() || !name.empty())
+    {
+        map_env["NAME"] = name;
+        map_env["VALUE"] = value;
+    }
     map_env["SCRIPT_FILENAME"] = url.substr(1, url.size());
     map_env["SCRIPT_NAME"] = url;
     map_env["AUTH_TYPE"] = "Basic";
     map_env["CONTENT_TYPE"] = "";
-    if (!name.empty() || !name.empty())
-    {
-        std::cout<<"++++fd++++++fd++++++fd+++++fd+++++fd++++++++fd+++\n";
-            std :: cout << name <<"="<<value << std ::endl;
-        map_env["NAME"] = name;
-        map_env["VALUE"] = value;
-        std::cout<<"+++fd++++++++fd+++++++fd++++fd++++++fd++++++fd+++\n";
-    }
     char **envp = get_env_form_map(map_env);
     return envp;
 }
@@ -135,8 +132,9 @@ std::string return_path(std::string path, std::string status)
     return buf;
 }
 
-int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string path)
+int Response::run_cgi(Location &location, Request &requst, Configuration &conf_serv,std::string path)
 {
+
     std::string status;
     std::string root;
     int status_exec;
@@ -148,26 +146,23 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     int fd;
 
     flag = 0;
-    int i;
+    size_t i;
     for (i = 0; i < location.getallow_methods().size(); i++)
     {
         if (!location.getallow_methods()[i].compare(requst.get_method()))
             flag = 1;      
     }
-    // path = parsing_url(path);
-
-    std::cout << "path =" << path << std::endl;
     if (path.compare(path.length() - 3, 3, ".py") && path.compare(path.length() - 4, 4, ".php"))
     {
         this->respons = "HTTP/1.1 403 Forbidden\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
         this->respons += return_path(mymap_erorr[403], "403");
-        return 1;
+        return 0;
     }
     int fd_execute = open(path.c_str(), O_RDONLY);
-    std::ofstream outfile("src/error/trash/trash.txt");
-    fd = open("src/error/trash/trash.txt", O_WRONLY | O_TRUNC);
+    std::ofstream outfile("src/server/trash/trash.txt");
+    fd = open("src/server/trash/trash.txt", O_WRONLY | O_TRUNC);
     if (fd < 0)
     {
         this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
@@ -198,7 +193,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         av[1] = strdup((path).c_str());
         av[2] = NULL;
     }
-    envp = init_may_env(location, requst, conf_serv);
+    envp = init_may_env(requst, conf_serv);
     pid = fork();
     if (pid == -1)
     {
@@ -207,7 +202,8 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         this->respons += "\r\n";
         this->respons += return_path(mymap_erorr[500], "500");
         free_tab(envp);
-        unlink("src/error/trash/trash.txt");
+        free_tab(av);
+        unlink("src/server/trash//trash.txt");
         std::cout<<"ERROR CGI: problem in fork"<<std::endl;
         return 1;
     }
@@ -226,20 +222,23 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         close(fd_execute);
         if (status_exec)
         {
-            this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
+            this->respons = "HTTP/1.1 502 Bad Gatewayr\r\n";
             this->respons += "content-type: text/html\r\n";
             this->respons += "\r\n";
-            this->respons += return_path(mymap_erorr[500], "500");
+            this->respons += return_path(mymap_erorr[500], "502");
             free_tab(envp);
-            unlink("src/error/trash/trash.txt");
+            free_tab(av);
+            unlink("src/server/trash/trash.txt");
             std::cout<<"ERROR CGI: error in execve"<<std::endl;
             return 1;
         }
     }
     this->respons = "HTTP/1.1 200\r\n";
-    this->respons += return_path("src/error/trash/trash.txt", "-1");
+    this->respons += return_path("src/server/trash/trash.txt", "-1");
+    unlink("src/server/trash/trash.txt");
     free_tab(envp);
-    unlink("src/error/trash/trash.txtt");
+    free_tab(av);
+
     return 1;
 }
 
